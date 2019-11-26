@@ -20,11 +20,11 @@ variable "environment" {
 }
 
 variable "tls_cert_file" {
-  default = ""
+  default = "/opt/vault/tls/vault.crt.pem"
 }
 
 variable "tls_key_file" {
-  default = ""
+  default = "/opt/vault/tls/vault.key.pem"
 }
 
 # ---------------------------

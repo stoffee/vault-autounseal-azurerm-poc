@@ -17,12 +17,6 @@ client_secret = "YOUR_CLIENT_SECRET"
 # Azure account subscription ID (Required)
 subscription_id = "YOUR_SUB_ID"
 
-# The TLS Cert
-tls_cert_file = "/opt/vault/tls/vault.crt.pem"
-
-# The TLS key
-tls_key_file = "/opt/vault/tls/vault.key.pem
-
 #------------
 # Optional
 #------------
@@ -31,7 +25,7 @@ tls_key_file = "/opt/vault/tls/vault.key.pem
 # location="westus2"
 
 # To overwrite the default (Optional)
- environment = "poc"
+environment = "poc"
 
 # Resource Group name.
 resource_group_name = "hashicorp-vault-poc"

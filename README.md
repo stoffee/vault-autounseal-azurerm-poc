@@ -6,7 +6,7 @@
 
 - Microsoft Azure account
 - [Terraform installed](https://www.terraform.io/downloads.html) and ready to use
-- *Optional - a [Self Signed SSL Cert](https://github.com/hashicorp/terraform-azurerm-vault/tree/master/modules/private-tls-cert) or a Vaild SSL Cert for the DNS name of your vault server and the localhost ip 127.0.0.1.
+- A [Self Signed SSL Cert](https://github.com/hashicorp/terraform-azurerm-vault/tree/master/modules/private-tls-cert) or a Vaild SSL Cert for the DNS name of your vault server and the localhost ip 127.0.0.1.
 
 <br>
 
