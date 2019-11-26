@@ -6,6 +6,7 @@
 
 - Microsoft Azure account
 - [Terraform installed](https://www.terraform.io/downloads.html) and ready to use
+- *Optional - a [Self Signed SSL Cert](https://github.com/hashicorp/terraform-azurerm-vault/tree/master/modules/private-tls-cert) or a Vaild SSL Cert for the DNS name of your vault server and the localhost ip 127.0.0.1.
 
 <br>
 
@@ -43,6 +44,8 @@ Tips:
 1. Provide Azure credentials in the `terraform.tfvars.example` and save it as `terraform.tfvars`
 
     > NOTE: Overwrite the Azure `location` or `environment` name in the `terraform.tfvars` as desired.
+
+1. Add the [SSL Certs to the setup.tpl](https://github.com/stoffee/vault-autounseal-azurerm-poc/blob/master/setup.tpl#L59)
 
 1. Run the Terraform commands:
 
