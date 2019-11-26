@@ -58,25 +58,27 @@ Tips:
     # Output provides the SSH instruction
     $ terraform apply -auto-approve
     ...
+    Apply complete! Resources: 12 added, 0 changed, 0 destroyed.
+
     Outputs:
 
-    ip = 13.82.62.56
-    key_vault_name = Test-vault-1e5a88de
+    ip = 52.151.16.65
+    key_vault_name = poc-vault-90ad5386
     ssh-addr =
-        Connect to your virtual machine via SSH:
+    Connect to your virtual machine via SSH:
 
-        $ ssh azureuser@13.82.62.562
+    $ ssh -i ssh/private/key/location azureuser@52.151.16.65
     ```
 
 1. SSH into the virtual machine:
 
-    ```plaintext
-    $ ssh -i path/to/your/ssh/key azureuser@13.82.62.562
+    ```shell
+    $ ssh -i ssh/private/key/location azureuser@52.151.16.65
     ```
 
 1. Find your Root Token and Recovery Key
 
-    ```plaintext
+    ```shell
     $ cat /opt/vault/setup/vault.unseal.info
     ```
 
@@ -88,7 +90,7 @@ Tips:
 
 Run `terraform destroy` when you are done exploring:
 
-```plaintext
+```shell
 $ terraform destroy -auto-approve
 
 $ rm -rf .terraform terraform.tfstate*
