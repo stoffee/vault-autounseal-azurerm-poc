@@ -204,6 +204,8 @@ data "template_file" "setup" {
     client_secret       = "${var.client_secret}"
     vault_name          = "${azurerm_key_vault.vault.name}"
     key_name            = "${var.key_name}"
+    tls_cert_file       = var.tls_cert_file
+    tls_key_file        = var.tls_key_file
   }
 }
 
@@ -213,7 +215,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
   location              = var.location
   resource_group_name   = azurerm_resource_group.vault.name
   network_interface_ids = ["${azurerm_network_interface.tf_nic.id}"]
-  vm_size               = "Standard_DS1_v2"
+  vm_size               = "Standard_DS2_v2"
 
   identity {
     type = "SystemAssigned"
@@ -229,7 +231,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -255,6 +257,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
   }
+
 }
 
 data "azurerm_public_ip" "tf_publicip" {
@@ -271,7 +274,7 @@ output "ssh-addr" {
 
     Connect to your virtual machine via SSH:
 
-    $ ssh azureuser@${data.azurerm_public_ip.tf_publicip.ip_address}
+    $ ssh -i ssh/private/key/location azureuser@${data.azurerm_public_ip.tf_publicip.ip_address}
 
 
 SSH

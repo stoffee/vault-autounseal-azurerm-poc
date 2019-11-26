@@ -12,11 +12,19 @@ variable "key_name" {
 
 variable "location" {
   description = "Azure location where the Key Vault resource to be created"
-  default     = "eastus"
+  default     = "westus"
 }
 
 variable "environment" {
-  default = "learn"
+  default = "hashicorp-poc"
+}
+
+variable "tls_cert_file" {
+  default = ""
+}
+
+variable "tls_key_file" {
+  default = ""
 }
 
 # ---------------------------

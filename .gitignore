@@ -11,3 +11,4 @@
 *.rli
 .terraform
 *.txt
+*.pem

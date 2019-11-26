@@ -9,11 +9,12 @@ curl --silent --output /tmp/$${VAULT_ZIP} $${VAULT_URL}
 unzip -o /tmp/$${VAULT_ZIP} -d /usr/local/bin/
 chmod 0755 /usr/local/bin/vault
 mkdir -pm 0755 /etc/vault.d
+mkdir -pm 0755 /opt/vault/tls
 mkdir -pm 0755 /opt/vault/setup
 chown -R azureuser:azureuser /opt/vault
 chown -R azureuser:azureuser /etc/vault.d
 
-export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_ADDR=https://127.0.0.1:8200
 
 cat << EOF > /lib/systemd/system/vault.service
 [Unit]
@@ -40,7 +41,9 @@ storage "file" {
 }
 listener "tcp" {
   address     = "0.0.0.0:8200"
-  tls_disable = 1
+  #tls_disable = 1
+  tls_cert_file   = "${tls_cert_file}"
+  tls_key_file    = "${tls_key_file}"
 }
 seal "azurekeyvault" {
   client_id      = "${client_id}"
@@ -53,12 +56,23 @@ ui=true
 disable_mlock = true
 EOF
 
+cat << EOF > /opt/vault/tls/vault.crt.pem
+-----BEGIN CERTIFICATE-----
+ENTER.YOUR.SSL.CRT
+-----END CERTIFICATE-----
+EOF
+
+cat << EOF > /opt/vault/tls/vault.key.pem
+-----BEGIN RSA PRIVATE KEY-----
+ENTER.YOUR.SSL.KEY
+-----END RSA PRIVATE KEY-----
+EOF
 
 sudo chmod 0664 /lib/systemd/system/vault.service
 systemctl daemon-reload
 
 cat << EOF > /etc/profile.d/vault.sh
-export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_ADDR=https://127.0.0.1:8200
 export VAULT_SKIP_VERIFY=true
 EOF
 
@@ -66,21 +80,29 @@ source /etc/profile.d/vault.sh
 
 systemctl enable vault
 systemctl start vault
-systemctl status vault >> /opt/vault/setup/bootstrap_config.log
+systemctl status vault > /opt/vault/setup/bootstrap_config.log
 sleep 12
 
 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
 systemctl restart vault
 vault status >> /opt/vault/setup/bootstrap_config.log
 sleep 12
+
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
-vault login $ROOT_TOKEN >> /opt/vault/setup/bootstrap_config.log
+vault login $ROOT_TOKEN
 
 vault auth enable azure >> /opt/vault/setup/bootstrap_config.log
 
-vault write auth/azure/config tenant_id="${tenant_id}" resource="https://management.azure.com/" client_id="${client_id}" client_secret="${client_secret}">> /opt/vault/setup/bootstrap_config.log
+vault write auth/azure/config tenant_id="${tenant_id}" \
+resource="https://management.azure.com/" \
+client_id="${client_id}" \
+client_secret="${client_secret}" >> /opt/vault/setup/bootstrap_config.log
 
-vault write auth/azure/role/dev-role policies="default" bound_subscription_ids="${subscription_id}" bound_resource_groups="${resource_group_name}" >> /opt/vault/setup/bootstrap_config.log
+vault write auth/azure/role/dev-role policies="dev" \
+bound_subscription_ids="${subscription_id}" \
+bound_resource_groups="${resource_group_name}" \
+ttl=24h \
+max_ttl=48h >> /opt/vault/setup/bootstrap_config.log
 
 vault write auth/azure/login role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
@@ -96,4 +118,54 @@ export VAULT_TOKEN=$(vault write -field=token auth/azure/login \
  resource_group_name="${resource_group_name}" \
  vm_name="${vm_name}")
 
-echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-vault-token
+echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
+
+##
+# setup secrets role and pull some fake secret
+##
+
+cat << EOF > /opt/vault/setup/dev.hcl
+path "secret/db-credentials" {
+  capabilities = ["read", "list"]
+}
+EOF
+
+vault policy write dev /opt/vault/setup/dev.hcl >> /opt/vault/setup/bootstrap_config.log
+
+echo "adding db-credentials as root vault token" >> /opt/vault/setup/bootstrap_config.log 
+vault kv put secret/db-credentials DB-Admin=SuperSecurePassword >> /opt/vault/setup/bootstrap_config.log
+
+echo "retrieving db-credentials as root vault token" >> /opt/vault/setup/bootstrap_config.log 
+vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
+
+echo "Logging in as Azure User" >> /opt/vault/setup/bootstrap_config.log
+vault login $VAULT_TOKEN >> /opt/vault/setup/bootstrap_config.log
+echo "vault kv get secret/db-credentials" >> /opt/vault/setup/bootstrap_config.log
+vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
+echo "vault kv get secret/linux-credentials" >> /opt/vault/setup/bootstrap_config.log
+vault kv get secret/linux-credentials >> /opt/vault/setup/bootstrap_config.log
+echo "vault kv put secret/db-credentials DB-Admin=NoBuenoPassword" >> /opt/vault/setup/bootstrap_config.log
+vault kv put secret/db-credentials foo=blah >> /opt/vault/setup/bootstrap_config.log
+
+##
+# Enable the Azure secrets engine
+##
+
+vault login $ROOT_TOKEN  >> /opt/vault/setup/bootstrap_config.log
+vault secrets enable azure  >> /opt/vault/setup/bootstrap_config.log
+vault write azure/config \
+subscription_id=${subscription_id} \
+tenant_id=${tenant_id} \
+client_id=${client_id} \
+client_secret=${client_secret} >> /opt/vault/setup/bootstrap_config.log
+
+vault write azure/roles/my-role ttl=1h azure_roles=-<<EOF
+    [
+        {
+            "role_name": "Contributor",
+            "scope":  "/subscriptions/<uuid>/resourceGroups/Website"
+        }
+    ]
+EOF  >> /opt/vault/setup/bootstrap_config.log
+
+vault read azure/creds/my-role >> /opt/vault/setup/my-role-token
