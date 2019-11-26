@@ -39,7 +39,10 @@ Tips:
 
 ## Deployment Steps
 
-1. Set this location as your working directory
+1. Clone this repo
+   ```shell
+   $ git clone https://github.com/stoffee/vault-autounseal-azurerm-poc.git
+   ```
 
 1. Provide Azure credentials in the `terraform.tfvars.example` and save it as `terraform.tfvars`
 
@@ -81,9 +84,6 @@ Tips:
     ```shell
     $ cat /opt/vault/setup/vault.unseal.info
     ```
-
-
-
 
 
 ## Clean up
