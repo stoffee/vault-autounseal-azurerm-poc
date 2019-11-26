@@ -1,8 +1,4 @@
-# Vault POC - Auto-unseal using Azure Key Vault
-
-These assets are provided to perform the tasks described in the [Auto-unseal with Azure Key Vault](https://learn.hashicorp.com/vault/operations/autounseal-azure-keyvault) guide.
-
-In addition, a script is provided so that you can enable and test `azure` auth method. (_Optional_)
+# Vault POC using Azure Key Vault
 
 ---
 
@@ -72,49 +68,18 @@ Tips:
 1. SSH into the virtual machine:
 
     ```plaintext
-    $ ssh azureuser@13.82.62.562
+    $ ssh -i path/to/your/ssh/key azureuser@13.82.62.562
     ```
 
-1. Check the current Vault status:
-
-    ```text
-    $ vault status
-    Key                      Value
-    ---                      -----
-    Recovery Seal Type       azurekeyvault
-    Initialized              false
-    Sealed                   true
-    Total Recovery Shares    0
-    Threshold                0
-    Unseal Progress          0/0
-    Unseal Nonce             n/a
-    Version                  n/a
-    HA Enabled               false
-    ```
-    Vault hasn't been initialized, yet.
-
-1. Explorer the Vault configuration file
+1. Find your Root Token and Recovery Key
 
     ```plaintext
-    $ cat /etc/vault.d/config.hcl
-
-    storage "file" {
-      path = "/opt/vault"
-    }
-    listener "tcp" {
-      address     = "0.0.0.0:8200"
-      tls_disable = 1
-    }
-    seal "azurekeyvault" {
-      client_id      = "YOUR-AZURE-APP-ID"
-      client_secret  = "YOUR-AZURE-APP-PASSWORD"
-      tenant_id      = "YOUR-AZURE-TENANT-ID"
-      vault_name     = "Test-vault-xxxx"
-      key_name       = "generated-key"
-    }
-    ui=true
-    disable_mlock = true
+    $ cat /opt/vault/setup/vault.unseal.info
     ```
+
+
+
+
 
 ## Clean up
 
