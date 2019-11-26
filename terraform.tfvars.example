@@ -1,0 +1,32 @@
+#------------
+# Required
+#------------
+
+# Provide your tenant ID (Required)
+tenant_id="YOUR_TENANT_ID"
+
+# Public SSH key (Required)
+public_key = "ssh-rsa AA........."
+
+# Azure Client ID (Required)
+client_id = "YOUR_CLIENT_ID"
+
+# Azure Client secret (Required)
+client_secret = "YOUR_CLIENT_SECRET"
+
+# Azure account subscription ID (Required)
+subscription_id = "YOUR_SUB_ID"
+
+
+#------------
+# Optional
+#------------
+
+# To overwrite the default (Optional)
+# location="westus2"
+
+# To overwrite the default (Optional)
+ environment = "poc"
+
+# Resource Group name.
+resource_group_name = "vault-poc"
