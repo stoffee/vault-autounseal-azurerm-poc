@@ -195,7 +195,7 @@ data "template_file" "setup" {
   template = "${file("${path.module}/setup.tpl")}"
 
   vars = {
-    resource_group_name = "${var.environment}-vault-rg"
+    resource_group_name = "${var.environment}-rg"
     vm_name             = "${var.vm_name}"
     vault_download_url  = "${var.vault_download_url}"
     tenant_id           = "${var.tenant_id}"
