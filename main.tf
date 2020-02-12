@@ -252,23 +252,23 @@ resource "azurerm_virtual_machine" "tf_vm" {
 
 }
 
-data "azurerm_public_ip" "tf_publicip" {
-  name                = "${azurerm_public_ip.tf_publicip.name}"
-  resource_group_name = "${azurerm_virtual_machine.tf_vm.resource_group_name}"
-}
+#data "azurerm_public_ip" "tf_publicip" {
+#  name                = "${azurerm_public_ip.tf_publicip.name}"
+#  resource_group_name = "${azurerm_virtual_machine.tf_vm.resource_group_name}"
+#}
 
-output "ip" {
-  value = "${data.azurerm_public_ip.tf_publicip.ip_address}"
-}
+#output "ip" {
+#  value = "${data.azurerm_public_ip.tf_publicip.ip_address}"
+#}
 
-output "ssh-addr" {
-  value = <<SSH
-
-    Connect to your virtual machine via SSH:
-
-    $ ssh -i ssh/private/key/location azureuser@${data.azurerm_public_ip.tf_publicip.ip_address}
-
-
-SSH
-
-}
+#output "ssh-addr" {
+#  value = <<SSH
+#
+#    Connect to your virtual machine via SSH:
+#
+#    $ ssh -i ssh/private/key/location azureuser@${data.azurerm_public_ip.tf_publicip.ip_address}
+#
+#
+#SSH
+#
+#}
