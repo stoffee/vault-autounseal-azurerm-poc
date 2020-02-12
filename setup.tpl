@@ -88,6 +88,9 @@ systemctl restart vault
 vault status >> /opt/vault/setup/bootstrap_config.log
 sleep 12
 
+echo "Unsealing..."
+egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do   vault operator unseal ${key}; done
+
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
 
