@@ -188,14 +188,14 @@ data "template_file" "setup" {
 
   vars = {
     resource_group_name = "${var.environment}-rg"
-    vm_name             = "${var.vm_name}"
-    vault_download_url  = "${var.vault_download_url}"
-    tenant_id           = "${var.tenant_id}"
-    subscription_id     = "${var.subscription_id}"
-    client_id           = "${var.client_id}"
-    client_secret       = "${var.client_secret}"
-    vault_name          = "${azurerm_key_vault.vault.name}"
-    key_name            = "${var.key_name}"
+    vm_name             = var.vm_name
+    vault_download_url  = var.vault_download_url
+    tenant_id           = var.tenant_id
+    subscription_id     = var.subscription_id
+    client_id           = var.client_id
+    client_secret       = var.client_secret
+    vault_name          = azurerm_key_vault.vault.name
+    key_name            = var.key_name
     tls_cert_file       = var.tls_cert_file
     tls_key_file        = var.tls_key_file
   }
@@ -251,24 +251,3 @@ resource "azurerm_virtual_machine" "tf_vm" {
   }
 
 }
-
-#data "azurerm_public_ip" "tf_publicip" {
-#  name                = "${azurerm_public_ip.tf_publicip.name}"
-#  resource_group_name = "${azurerm_virtual_machine.tf_vm.resource_group_name}"
-#}
-
-#output "ip" {
-#  value = "${data.azurerm_public_ip.tf_publicip.ip_address}"
-#}
-
-#output "ssh-addr" {
-#  value = <<SSH
-#
-#    Connect to your virtual machine via SSH:
-#
-#    $ ssh -i ssh/private/key/location azureuser@${data.azurerm_public_ip.tf_publicip.ip_address}
-#
-#
-#SSH
-#
-#}
