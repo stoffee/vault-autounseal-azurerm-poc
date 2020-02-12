@@ -60,6 +60,7 @@ disable_mlock = true
 EOF
 
 openssl req -x509 -out /opt/vault/tls/vault.crt.pem -keyout /opt/vault/tls/vault.key.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <(printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+chmod 600 /opt/vault/tls/vault.crt.pem /opt/vault/tls/vault.key.pem
 #cat << EOF > /opt/vault/tls/vault.crt.pem
 #-----BEGIN CERTIFICATE-----
 #ENTER.YOUR.SSL.CRT
