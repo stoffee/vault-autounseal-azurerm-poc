@@ -1,6 +1,10 @@
 #!/bin/bash
 
-sudo apt update && sudo apt install -y unzip jq openssl
+
+DEBIAN_FRONTEND=noninteractive apt update
+DEBIAN_FRONTEND=noninteractive apt install -y unzip jq openssl screen vim
+DEBIAN_FRONTEND=noninteractive apt -y autoremove
+DEBIAN_FRONTEND=noninteractive apt -y upgrade
 
 VAULT_ZIP="vault.zip"
 VAULT_URL="${vault_download_url}"
@@ -13,7 +17,7 @@ mkdir -pm 0755 /opt/vault/setup
 chown -R azureuser:azureuser /opt/vault
 chown -R azureuser:azureuser /etc/vault.d
 
-export VAULT_ADDR=https://127.0.0.1:8200
+export VAULT_ADDR=https://localhost:8200
 
 cat << EOF > /lib/systemd/system/vault.service
 [Unit]
