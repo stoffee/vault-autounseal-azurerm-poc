@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# sudo apt-get install -y unzip jq
-sudo apt update && sudo apt install -y unzip jq
+sudo apt update && sudo apt install -y unzip jq openssl
 
 VAULT_ZIP="vault.zip"
 VAULT_URL="${vault_download_url}"
@@ -56,17 +55,18 @@ ui=true
 disable_mlock = true
 EOF
 
-cat << EOF > /opt/vault/tls/vault.crt.pem
------BEGIN CERTIFICATE-----
-ENTER.YOUR.SSL.CRT
------END CERTIFICATE-----
-EOF
+openssl req -x509 -out /opt/vault/tls/vault.crt.pem -keyout /opt/vault/tls/vault.key.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <(printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+#cat << EOF > /opt/vault/tls/vault.crt.pem
+#-----BEGIN CERTIFICATE-----
+#ENTER.YOUR.SSL.CRT
+#-----END CERTIFICATE-----
+#EOF
 
-cat << EOF > /opt/vault/tls/vault.key.pem
------BEGIN RSA PRIVATE KEY-----
-ENTER.YOUR.SSL.KEY
------END RSA PRIVATE KEY-----
-EOF
+#cat << EOF > /opt/vault/tls/vault.key.pem
+#-----BEGIN RSA PRIVATE KEY-----
+#ENTER.YOUR.SSL.KEY
+#-----END RSA PRIVATE KEY-----
+#EOF
 
 sudo chmod 0664 /lib/systemd/system/vault.service
 systemctl daemon-reload
@@ -93,6 +93,8 @@ echo "Unsealing..."
 
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
+
+vault audit enable file file_path=/opt/vault/vault_audit.log
 
 vault auth enable azure >> /opt/vault/setup/bootstrap_config.log
 
