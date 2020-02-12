@@ -55,9 +55,8 @@ variable "vault_download_url" {
 }
 
 variable "resource_group_name" {
-  default = "hashicorp-vault-poc"
 }
 
 variable "azure_vm_size" {
-  default = "Standard_DS2_v3"
+  default = "Standard_DS2_v2"
 }
