@@ -207,7 +207,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
   location              = var.location
   resource_group_name   = azurerm_resource_group.vault.name
   network_interface_ids = ["${azurerm_network_interface.tf_nic.id}"]
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = var.azure_vm_size
 
   identity {
     type = "SystemAssigned"
