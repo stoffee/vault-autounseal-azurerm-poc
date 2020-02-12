@@ -74,13 +74,13 @@ source /etc/profile.d/vault.sh
 
 systemctl enable vault
 systemctl start vault
-systemctl status vault > /opt/vault/setup/bootstrap_config.log
 sleep 12
+systemctl status vault > /opt/vault/setup/bootstrap_config.log
 
 VAULT_ADDR=https://localhost:8200 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
 systemctl restart vault
-vault status >> /opt/vault/setup/bootstrap_config.log
 sleep 15
+vault status >> /opt/vault/setup/bootstrap_config.log
 
 echo "Unsealing vault..."
 VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
@@ -122,6 +122,7 @@ echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
 ##
 # setup secrets role and pull some fake secret
 ##
+VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
 
 cat << EOF > /opt/vault/setup/dev.hcl
 path "secret/db-credentials" {
