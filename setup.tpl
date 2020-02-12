@@ -1,10 +1,11 @@
 #!/bin/bash
 
-
-DEBIAN_FRONTEND=noninteractive apt update
-DEBIAN_FRONTEND=noninteractive apt install -y unzip jq openssl screen vim
-DEBIAN_FRONTEND=noninteractive apt -y autoremove
-DEBIAN_FRONTEND=noninteractive apt -y upgrade
+export VAULT_ADDR=https://localhost:8200
+export DEBIAN_FRONTEND=noninteractive
+apt update
+apt install -y unzip jq openssl screen vim
+apt -y autoremove
+apt -y upgrade
 
 VAULT_ZIP="vault.zip"
 VAULT_URL="${vault_download_url}"
@@ -19,12 +20,8 @@ openssl req -x509 -out /opt/vault/tls/vault.crt.pem -keyout /opt/vault/tls/vault
 chmod 600 /opt/vault/tls/vault.crt.pem /opt/vault/tls/vault.key.pem
 chown -R azureuser:azureuser /opt/vault
 chown -R azureuser:azureuser /etc/vault.d
-
-
-chown vault /opt/vault/tls/vault.crt.pem /opt/vault/tls/vault.key.pem
-
-
-export VAULT_ADDR=https://localhost:8200
+cp /opt/vault/tls/vault.crt.pem /usr/local/share/ca-certificates/vault.crt
+update-ca-certificates
 
 cat << EOF > /lib/systemd/system/vault.service
 [Unit]
@@ -43,7 +40,6 @@ Group=azureuser
 [Install]
 WantedBy=multi-user.target
 EOF
-
 
 cat << EOF > /etc/vault.d/config.hcl
 storage "file" {
@@ -65,20 +61,6 @@ seal "azurekeyvault" {
 ui=true
 disable_mlock = true
 EOF
-
-
-
-#cat << EOF > /opt/vault/tls/vault.crt.pem
-#-----BEGIN CERTIFICATE-----
-#ENTER.YOUR.SSL.CRT
-#-----END CERTIFICATE-----
-#EOF
-
-#cat << EOF > /opt/vault/tls/vault.key.pem
-#-----BEGIN RSA PRIVATE KEY-----
-#ENTER.YOUR.SSL.KEY
-#-----END RSA PRIVATE KEY-----
-#EOF
 
 sudo chmod 0664 /lib/systemd/system/vault.service
 systemctl daemon-reload
