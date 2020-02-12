@@ -76,7 +76,7 @@ sudo chmod 0664 /lib/systemd/system/vault.service
 systemctl daemon-reload
 
 cat << EOF > /etc/profile.d/vault.sh
-export VAULT_ADDR=https://127.0.0.1:8200
+export VAULT_ADDR=https://localhost:8200
 export VAULT_SKIP_VERIFY=true
 EOF
 
