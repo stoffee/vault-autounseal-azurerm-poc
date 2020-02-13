@@ -140,7 +140,7 @@ echo "retrieving db-credentials as root vault token" >> /opt/vault/setup/bootstr
 VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
 
 echo "Logging in as Azure User" >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200mvault login $VAULT_TOKEN >> /opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault login $VAULT_TOKEN >> /opt/vault/setup/bootstrap_config.log
 echo "vault kv get secret/db-credentials" >> /opt/vault/setup/bootstrap_config.log
 VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
 echo "vault kv get secret/linux-credentials" >> /opt/vault/setup/bootstrap_config.log
