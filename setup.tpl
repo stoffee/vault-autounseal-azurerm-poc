@@ -68,6 +68,7 @@ systemctl daemon-reload
 cat << EOF > /etc/profile.d/vault.sh
 export VAULT_ADDR=https://localhost:8200
 export VAULT_SKIP_VERIFY=true
+export ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 EOF
 
 source /etc/profile.d/vault.sh
