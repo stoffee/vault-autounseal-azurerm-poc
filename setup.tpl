@@ -78,8 +78,8 @@ sleep 12
 systemctl status vault > /opt/vault/setup/bootstrap_config.log
 
 VAULT_ADDR=https://localhost:8200 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
-systemctl restart vault
-sleep 15
+#systemctl restart vault
+#sleep 15
 vault status >> /opt/vault/setup/bootstrap_config.log
 
 #echo "Manually Unsealing vault..."
