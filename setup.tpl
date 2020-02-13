@@ -121,13 +121,16 @@ echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
 ##
 # setup secrets role and pull some fake secret
 ##
-VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
+
 
 cat << EOF > /opt/vault/setup/dev.hcl
 path "secret/db-credentials" {
   capabilities = ["read", "list"]
 }
 EOF
+
+ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
+VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
 
 VAULT_ADDR=https://localhost:8200 vault policy write dev /opt/vault/setup/dev.hcl
 
@@ -137,7 +140,7 @@ VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials DB-Admin=Su
 echo "retrieving db-credentials as root vault token" 
 VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials
 
-echo "Logging in as Azure User" >> /opt/vault/setup/bootstrap_config.log
+echo "Logging in as Azure User"
 VAULT_ADDR=https://localhost:8200 vault login $VAULT_TOKEN
 echo "vault kv get secret/db-credentials"
 VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials
