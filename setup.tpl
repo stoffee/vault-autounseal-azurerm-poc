@@ -46,7 +46,7 @@ storage "file" {
   path = "/opt/vault"
 }
 listener "tcp" {
-  address     = "0.0.0.0:8200"
+  address     = "localhost:8200"
   #tls_disable = 1
   tls_cert_file   = "${tls_cert_file}"
   tls_key_file    = "${tls_key_file}"
@@ -70,10 +70,13 @@ systemctl start vault
 sleep 12
 systemctl status vault
 
-VAULT_ADDR=https://localhost:8200 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
+VAULT_ADDR=https://localhost:8200 vault operator init > /opt/vault/setup/vault.unseal.info
+#VAULT_ADDR=https://localhost:8200 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
 #systemctl restart vault
+sleep 6
 cat << EOF > /etc/profile.d/vault.sh
 export VAULT_ADDR=https://localhost:8200
+export VAULT_API_ADDR=https://localhost:8200
 export VAULT_SKIP_VERIFY=true
 export ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 EOF
@@ -152,7 +155,7 @@ VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials foo=blah
 ##
 # Enable the Azure secrets engine
 ##
-
+ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
 VAULT_ADDR=https://localhost:8200 vault secrets enable azure
 VAULT_ADDR=https://localhost:8200 vault write azure/config \
@@ -173,6 +176,7 @@ EOF
 VAULT_ADDR=https://localhost:8200 vault read azure/creds/my-role >> /opt/vault/setup/my-role-token
 
 #enable transit engine
+ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
 VAULT_ADDR=https://localhost:8200 vault secrets enable transit
 VAULT_ADDR=https://localhost:8200 vault secrets enable -path=encryption transit
