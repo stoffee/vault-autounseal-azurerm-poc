@@ -76,12 +76,12 @@ source /etc/profile.d/vault.sh
 systemctl enable vault
 systemctl start vault
 sleep 12
-systemctl status vault > /opt/vault/setup/bootstrap_config.log
+systemctl status vault
 
 VAULT_ADDR=https://localhost:8200 vault operator init -recovery-shares=1 -recovery-threshold=1 > /opt/vault/setup/vault.unseal.info
 #systemctl restart vault
 #sleep 15
-vault status >> /opt/vault/setup/bootstrap_config.log
+vault status
 
 #echo "Manually Unsealing vault..."
 #VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
@@ -91,18 +91,18 @@ VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
 
 VAULT_ADDR=https://localhost:8200 vault audit enable file file_path=/opt/vault/vault_audit.log
 
-VAULT_ADDR=https://localhost:8200 vault auth enable azure >> /opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault auth enable azure
 
 VAULT_ADDR=https://localhost:8200 vault write auth/azure/config tenant_id="${tenant_id}" \
 resource="https://management.azure.com/" \
 client_id="${client_id}" \
-client_secret="${client_secret}" >> /opt/vault/setup/bootstrap_config.log
+client_secret="${client_secret}"
 
 VAULT_ADDR=https://localhost:8200 vault write auth/azure/role/dev-role policies="dev" \
 bound_subscription_ids="${subscription_id}" \
 bound_resource_groups="${resource_group_name}" \
 ttl=24h \
-max_ttl=48h >> /opt/vault/setup/bootstrap_config.log
+max_ttl=48h
 
 VAULT_ADDR=https://localhost:8200 vault write auth/azure/login role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
@@ -131,34 +131,34 @@ path "secret/db-credentials" {
 }
 EOF
 
-VAULT_ADDR=https://localhost:8200 vault policy write dev /opt/vault/setup/dev.hcl >> /opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault policy write dev /opt/vault/setup/dev.hcl
 
-echo "adding db-credentials as root vault token" >> /opt/vault/setup/bootstrap_config.log 
-VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials DB-Admin=SuperSecurePassword >> /opt/vault/setup/bootstrap_config.log
+echo "adding db-credentials as root vault token" 
+VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials DB-Admin=SuperSecurePassword
 
-echo "retrieving db-credentials as root vault token" >> /opt/vault/setup/bootstrap_config.log 
-VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
+echo "retrieving db-credentials as root vault token" 
+VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials
 
 echo "Logging in as Azure User" >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault login $VAULT_TOKEN >> /opt/vault/setup/bootstrap_config.log
-echo "vault kv get secret/db-credentials" >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials >> /opt/vault/setup/bootstrap_config.log
-echo "vault kv get secret/linux-credentials" >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault kv get secret/linux-credentials >> /opt/vault/setup/bootstrap_config.log
-echo "vault kv put secret/db-credentials DB-Admin=NoBuenoPassword" >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials foo=blah >> /opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault login $VAULT_TOKEN
+echo "vault kv get secret/db-credentials"
+VAULT_ADDR=https://localhost:8200 vault kv get secret/db-credentials
+echo "vault kv get secret/linux-credentials"
+VAULT_ADDR=https://localhost:8200 vault kv get secret/linux-credentials
+echo "vault kv put secret/db-credentials DB-Admin=NoBuenoPassword"
+VAULT_ADDR=https://localhost:8200 vault kv put secret/db-credentials foo=blah
 
 ##
 # Enable the Azure secrets engine
 ##
 
-VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN  >> /opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault secrets enable azure  >> /opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
+VAULT_ADDR=https://localhost:8200 vault secrets enable azure
 VAULT_ADDR=https://localhost:8200 vault write azure/config \
 subscription_id=${subscription_id} \
 tenant_id=${tenant_id} \
 client_id=${client_id} \
-client_secret=${client_secret} >> /opt/vault/setup/bootstrap_config.log
+client_secret=${client_secret}
 
 VAULT_ADDR=https://localhost:8200 vault write azure/roles/my-role ttl=1h azure_roles=-<<EOF
     [
@@ -167,14 +167,15 @@ VAULT_ADDR=https://localhost:8200 vault write azure/roles/my-role ttl=1h azure_r
             "scope":  "/subscriptions/<uuid>/resourceGroups/Website"
         }
     ]
-EOF  >> /opt/vault/setup/bootstrap_config.log
+EOF
 
 VAULT_ADDR=https://localhost:8200 vault read azure/creds/my-role >> /opt/vault/setup/my-role-token
 
 #enable transit engine
-VAULT_ADDR=https://localhost:8200 vault secrets enable transit >>/opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault secrets enable -path=encryption transit >>/opt/vault/setup/bootstrap_config.log
-VAULT_ADDR=https://localhost:8200 vault write -f transit/keys/orders >>/opt/vault/setup/bootstrap_config.log
+VAULT_ADDR=https://localhost:8200 vault login $ROOT_TOKEN
+VAULT_ADDR=https://localhost:8200 vault secrets enable transit
+VAULT_ADDR=https://localhost:8200 vault secrets enable -path=encryption transit
+VAULT_ADDR=https://localhost:8200 vault write -f transit/keys/orders
 VAULT_ADDR=https://localhost:8200 vault write transit/encrypt/orders plaintext=$(base64 <<< "4111 1111 1111 1111") >> /opt/vault/setup/plaintext
 PLAINTEXT=`sed -n 3p /opt/vault/setup/plaintext |awk '{print $2}'`
 VAULT_ADDR=https://localhost:8200 vault write transit/decrypt/orders \
