@@ -11,7 +11,8 @@ resource "azurerm_resource_group" "vault" {
   location = var.location
 
   tags = {
-    environment = "${var.environment}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
@@ -33,7 +34,8 @@ resource "azurerm_key_vault" "vault" {
   sku_name = "standard"
 
   tags = {
-    environment = "${var.environment}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 
   access_policy {
@@ -90,6 +92,8 @@ resource "azurerm_virtual_network" "tf_network" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
@@ -108,6 +112,8 @@ resource "azurerm_public_ip" "tf_publicip" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
@@ -142,6 +148,8 @@ resource "azurerm_network_security_group" "tf_nsg" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
@@ -160,13 +168,15 @@ resource "azurerm_network_interface" "tf_nic" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
 resource "random_id" "tf_random_id" {
   keepers = {
     # Generate a new ID only when a new resource group is defined
-    resource_group = "${azurerm_resource_group.vault.name}"
+    resource_group = azurerm_resource_group.vault.name
   }
 
   byte_length = 8
@@ -181,6 +191,8 @@ resource "azurerm_storage_account" "tf_storageaccount" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 }
 
@@ -230,7 +242,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
 
   os_profile {
     computer_name  = var.vm_name
-    admin_username = "azureuser"
+    admin_username = "stoffee"
     custom_data    = base64encode("${data.template_file.setup.rendered}")
   }
 
@@ -249,6 +261,8 @@ resource "azurerm_virtual_machine" "tf_vm" {
 
   tags = {
     environment = "${var.environment}-${random_id.keyvault.hex}"
+    Owner       = "stoffee@hashicorp.com"
+    TTL         = "96h"
   }
 
 }
