@@ -118,12 +118,7 @@ vault write -field=token auth/azure/login \
  resource_group_name="${resource_group_name}" \
  vm_name="${vm_name}" > /opt/vault/setup/VAULT_TOKEN
 
-export VAULT_TOKEN=$(VAULT_ADDR=http://127.0.0.1:8200 vault write -field=token auth/azure/login \
- role="dev-role" \
-  jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
- subscription_id="${subscription_id}" \
- resource_group_name="${resource_group_name}" \
- vm_name="${vm_name}")
+export VAULT_TOKEN=`cat /opt/vault/setup/VAULT_TOKEN |awk '{print $1}'`
 
 echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
 #
@@ -155,12 +150,7 @@ vault kv put secret/db-credentials DB-Admin=SuperSecurePassword
 echo "retrieving db-credentials as root vault token" 
 vault kv get secret/db-credentials
 echo "Logging in as Azure User"
-export VAULT_TOKEN=$(vault write -field=token auth/azure/login \
- role="dev-role" \
-  jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
- subscription_id="${subscription_id}" \
- resource_group_name="${resource_group_name}" \
- vm_name="${vm_name}")
+export VAULT_TOKEN=`cat /opt/vault/setup/VAULT_TOKEN |awk '{print $1}'`
 vault login $VAULT_TOKEN
 echo "vault kv get secret/db-credentials"
 vault kv get secret/db-credentials
@@ -210,7 +200,7 @@ base64 --decode <<< "$CIPHERTEXT" >>  /opt/vault/setup/creditcard_number
 
 cat << EOF > /tmp/azure_auth.sh
 set -v
-export VAULT_ADDR="http://localhost:8200"
+export VAULT_ADDR="http://127.0.0.1:8200"
 ault write auth/azure/login role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
   subscription_id="${subscription_id}" \
