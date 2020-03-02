@@ -121,7 +121,7 @@ echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
 #
 # unset this for the rest
 #
-unset $VAULT_TOKEN
+unset VAULT_TOKEN
 
 ##
 # setup secrets role and pull some fake secret
