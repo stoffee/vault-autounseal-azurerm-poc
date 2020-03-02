@@ -249,7 +249,7 @@ resource "azurerm_virtual_machine" "tf_vm" {
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path     = "/home/azureuser/.ssh/authorized_keys"
+      path     = "/home/stoffee/.ssh/authorized_keys"
       key_data = var.public_key
     }
   }
