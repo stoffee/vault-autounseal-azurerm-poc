@@ -208,5 +208,5 @@ VAULT_ADDR=http://127.0.0.1:8200 vault write auth/azure/login role="dev-role" \
   vm_name="${vm_name}"
 EOF
 
-sudo cp /tmp/azure_auth.sh /opt/vault/setup/2_azure_auth.sh
-sudo chmod +x /tmp/azure_auth.sh /opt/vault/setup/2_auzure_auth.sh
+sudo cp /tmp/azure_auth.sh /opt/vault/setup/azure_auth.sh
+sudo chmod +x /tmp/azure_auth.sh /opt/vault/setup/azure_auth.sh
