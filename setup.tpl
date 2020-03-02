@@ -111,6 +111,12 @@ vault write auth/azure/login role="dev-role" \
   resource_group_name="${resource_group_name}" \
   vm_name="${vm_name}" >> /opt/vault/setup/dev-role-token
 
+vault write -field=token auth/azure/login \
+ role="dev-role" \
+  jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
+ subscription_id="${subscription_id}" \
+ resource_group_name="${resource_group_name}" \
+ vm_name="${vm_name}" > /opt/vault/setup/VAULT_TOKEN
 
 export VAULT_TOKEN=$(VAULT_ADDR=http://127.0.0.1:8200 vault write -field=token auth/azure/login \
  role="dev-role" \
