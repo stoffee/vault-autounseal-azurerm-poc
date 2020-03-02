@@ -1,7 +1,10 @@
 #!/bin/bash
 
-export VAULT_ADDR=http://localhost:8200
+export VAULT_ADDR=http://127.0.0.1:8200
 export DEBIAN_FRONTEND=noninteractive
+export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_API_ADDR=http://127.0.0.1:8200
+export VAULT_SKIP_VERIFY=true
 apt update
 apt install -y unzip jq openssl screen vim
 apt -y autoremove
@@ -73,8 +76,8 @@ VAULT_ADDR=http://localhost:8200 vault operator init -recovery-shares=1 -recover
 systemctl restart vault
 sleep 6
 cat << EOF > /etc/profile.d/vault.sh
-export VAULT_ADDR=http://localhost:8200
-export VAULT_API_ADDR=http://localhost:8200
+export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_API_ADDR=http://127.0.0.1:8200
 export VAULT_SKIP_VERIFY=true
 export ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 EOF
@@ -86,31 +89,31 @@ vault status
 #VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
 
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
-VAULT_ADDR=http://localhost:8200 vault login $ROOT_TOKEN
+vault login $ROOT_TOKEN
 
-VAULT_ADDR=http://localhost:8200 vault audit enable file file_path=/opt/vault/vault_audit.log
+vault audit enable file file_path=/opt/vault/vault_audit.log
 
-VAULT_ADDR=http://localhost:8200 vault auth enable azure
+vault auth enable azure
 
-VAULT_ADDR=http://localhost:8200 vault write auth/azure/config tenant_id="${tenant_id}" \
+vault write auth/azure/config tenant_id="${tenant_id}" \
 resource="https://management.azure.com/" \
 client_id="${client_id}" \
 client_secret="${client_secret}"
 
-VAULT_ADDR=http://localhost:8200 vault write auth/azure/role/dev-role policies="dev" \
+vault write auth/azure/role/dev-role policies="dev" \
 bound_subscription_ids="${subscription_id}" \
 bound_resource_groups="${resource_group_name}" \
 ttl=24h \
 max_ttl=48h
 
-VAULT_ADDR=http://localhost:8200 vault write auth/azure/login role="dev-role" \
+vault write auth/azure/login role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
   subscription_id="${subscription_id}" \
   resource_group_name="${resource_group_name}" \
   vm_name="${vm_name}" >> /opt/vault/setup/dev-role-token
 
 
-export VAULT_TOKEN=$(VAULT_ADDR=http://localhost:8200 vault write -field=token auth/azure/login \
+export VAULT_TOKEN=$(VAULT_ADDR=http://127.0.0.1:8200 vault write -field=token auth/azure/login \
  role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
  subscription_id="${subscription_id}" \
@@ -135,38 +138,39 @@ path "secret/db-credentials" {
 EOF
 
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
-VAULT_ADDR=http://localhost:8200 vault login $ROOT_TOKEN
+vault login $ROOT_TOKEN
 
-VAULT_ADDR=http://localhost:8200 vault policy write dev /opt/vault/setup/dev.hcl
+vault policy write dev /opt/vault/setup/dev.hcl
 
+vault secrets enable -path=secret kv-v2
 echo "adding db-credentials as root vault token" 
-VAULT_ADDR=http://localhost:8200 vault kv put secret/db-credentials DB-Admin=SuperSecurePassword
+vault kv put secret/db-credentials DB-Admin=SuperSecurePassword
 
 echo "retrieving db-credentials as root vault token" 
-VAULT_ADDR=http://localhost:8200 vault kv get secret/db-credentials
+vault kv get secret/db-credentials
 
 echo "Logging in as Azure User"
-VAULT_ADDR=http://localhost:8200 vault login $VAULT_TOKEN
+vault login $VAULT_TOKEN
 echo "vault kv get secret/db-credentials"
-VAULT_ADDR=http://localhost:8200 vault kv get secret/db-credentials
+vault kv get secret/db-credentials
 echo "vault kv get secret/linux-credentials"
-VAULT_ADDR=http://localhost:8200 vault kv get secret/linux-credentials
+vault kv get secret/linux-credentials
 echo "vault kv put secret/db-credentials DB-Admin=NoBuenoPassword"
-VAULT_ADDR=http://localhost:8200 vault kv put secret/db-credentials foo=blah
+vault kv put secret/db-credentials foo=blah
 
 ##
 # Enable the Azure secrets engine
 ##
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
-VAULT_ADDR=http://localhost:8200 vault login $ROOT_TOKEN
-VAULT_ADDR=http://localhost:8200 vault secrets enable azure
-VAULT_ADDR=http://localhost:8200 vault write azure/config \
+vault login $ROOT_TOKEN
+vault secrets enable azure
+vault write azure/config \
 subscription_id=${subscription_id} \
 tenant_id=${tenant_id} \
 client_id=${client_id} \
 client_secret=${client_secret}
 
-VAULT_ADDR=http://localhost:8200 vault write azure/roles/my-role ttl=1h azure_roles=-<<EOF
+vault write azure/roles/my-role ttl=1h azure_roles=-<<EOF
     [
         {
             "role_name": "Contributor",
@@ -175,17 +179,17 @@ VAULT_ADDR=http://localhost:8200 vault write azure/roles/my-role ttl=1h azure_ro
     ]
 EOF
 
-VAULT_ADDR=http://localhost:8200 vault read azure/creds/my-role >> /opt/vault/setup/my-role-token
+vault read azure/creds/my-role >> /opt/vault/setup/my-role-token
 
 #enable transit engine
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
-VAULT_ADDR=http://localhost:8200 vault login $ROOT_TOKEN
-VAULT_ADDR=http://localhost:8200 vault secrets enable transit
-VAULT_ADDR=http://localhost:8200 vault secrets enable -path=encryption transit
-VAULT_ADDR=http://localhost:8200 vault write -f transit/keys/orders
-VAULT_ADDR=http://localhost:8200 vault write transit/encrypt/orders plaintext=$(base64 <<< "4111 1111 1111 1111") >> /opt/vault/setup/plaintext
+vault login $ROOT_TOKEN
+vault secrets enable transit
+vault secrets enable -path=encryption transit
+vault write -f transit/keys/orders
+vault write transit/encrypt/orders plaintext=$(base64 <<< "4111 1111 1111 1111") >> /opt/vault/setup/plaintext
 PLAINTEXT=`sed -n 3p /opt/vault/setup/plaintext |awk '{print $2}'`
-VAULT_ADDR=http://localhost:8200 vault write transit/decrypt/orders \
+vault write transit/decrypt/orders \
         ciphertext="$PLAINTEXT" >> /opt/vault/setup/ciphertext
 CIPHERTEXT=`sed -n 3p /opt/vault/setup/ciphertext |awk '{print $2}'`
 base64 --decode <<< "$CIPHERTEXT" >>  /opt/vault/setup/creditcard_number
@@ -193,7 +197,7 @@ base64 --decode <<< "$CIPHERTEXT" >>  /opt/vault/setup/creditcard_number
 cat << EOF > /tmp/azure_auth.sh
 set -v
 export VAULT_ADDR="http://localhost:8200"
-VAULT_ADDR=http://localhost:8200 vault write auth/azure/login role="dev-role" \
+ault write auth/azure/login role="dev-role" \
   jwt="$(curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-11-01&resource=https%3A%2F%2Fmanagement.azure.com%2F'  -H Metadata:true -s | jq -r .access_token)" \
   subscription_id="${subscription_id}" \
   resource_group_name="${resource_group_name}" \
