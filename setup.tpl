@@ -46,7 +46,7 @@ storage "file" {
   path = "/opt/vault"
 }
 listener "tcp" {
-  address     = "localhost:8200"
+  address     = "0.0.0.0:8200"
   tls_disable = 1
 }
 seal "azurekeyvault" {
@@ -85,7 +85,7 @@ vault status
 #echo "Manually Unsealing vault..."
 #VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
 
-#ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
+ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 VAULT_ADDR=http://localhost:8200 vault login $ROOT_TOKEN
 
 VAULT_ADDR=http://localhost:8200 vault audit enable file file_path=/opt/vault/vault_audit.log
@@ -118,6 +118,10 @@ export VAULT_TOKEN=$(VAULT_ADDR=http://localhost:8200 vault write -field=token a
  vm_name="${vm_name}")
 
 echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
+#
+# unset this for the rest
+#
+unset $VAULT_TOKEN
 
 ##
 # setup secrets role and pull some fake secret
