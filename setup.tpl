@@ -18,8 +18,8 @@ mkdir -pm 0755 /opt/vault/setup
 #create cert
 openssl req -x509 -out /opt/vault/tls/vault.crt.pem -keyout /opt/vault/tls/vault.key.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <(printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 chmod 600 /opt/vault/tls/vault.crt.pem /opt/vault/tls/vault.key.pem
-chown -R azureuser:azureuser /opt/vault
-chown -R azureuser:azureuser /etc/vault.d
+chown -R stoffee:stoffee /opt/vault
+chown -R stoffee:stoffee /etc/vault.d
 cp /opt/vault/tls/vault.crt.pem /usr/local/share/ca-certificates/vault.crt
 update-ca-certificates
 
@@ -35,8 +35,8 @@ ExecStartPre=/sbin/setcap 'cap_ipc_lock=+ep' /usr/local/bin/vault
 ExecStart=/usr/local/bin/vault server -config /etc/vault.d/config.hcl
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGTERM
-User=azureuser
-Group=azureuser
+User=stoffee
+Group=stoffee
 [Install]
 WantedBy=multi-user.target
 EOF
