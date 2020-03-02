@@ -3,8 +3,7 @@ provider "azurerm" {
   client_id       = var.client_id
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
-  version         = "=2.0.0"
-  features {}
+  version         = "=1.44.0"
 }
 
 resource "azurerm_resource_group" "vault" {
