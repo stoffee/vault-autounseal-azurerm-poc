@@ -88,13 +88,11 @@ vault status
 #echo "Manually Unsealing vault..."
 #VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
 
+cat << EOF > /opt/vault/setup/azure_setup.sh
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
-
 vault audit enable file file_path=/opt/vault/vault_audit.log
-
 vault auth enable azure
-
 vault write auth/azure/config tenant_id="${tenant_id}" \
 resource="https://management.azure.com/" \
 client_id="${client_id}" \
@@ -125,6 +123,8 @@ echo $VAULT_TOKEN >> /opt/vault/setup/dev-role-token-ENV
 # unset this for the rest
 #
 unset VAULT_TOKEN
+EOF
+chmod +x /opt/vault/setup/azure_setup.sh
 
 ##
 # setup secrets role and pull some fake secret
@@ -137,18 +137,15 @@ path "secret/db-credentials" {
 }
 EOF
 
+cat << EOF > /opt/vault/setup/dev-secrets.sh
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
-
 vault policy write dev /opt/vault/setup/dev.hcl
-
 vault secrets enable -path=secret kv-v2
 echo "adding db-credentials as root vault token" 
 vault kv put secret/db-credentials DB-Admin=SuperSecurePassword
-
 echo "retrieving db-credentials as root vault token" 
 vault kv get secret/db-credentials
-
 echo "Logging in as Azure User"
 vault login $VAULT_TOKEN
 echo "vault kv get secret/db-credentials"
@@ -157,10 +154,12 @@ echo "vault kv get secret/linux-credentials"
 vault kv get secret/linux-credentials
 echo "vault kv put secret/db-credentials DB-Admin=NoBuenoPassword"
 vault kv put secret/db-credentials foo=blah
-
+EOF
+chmod +x /opt/vault/setup/dev-secrets.sh
 ##
 # Enable the Azure secrets engine
 ##
+
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
 vault secrets enable azure
