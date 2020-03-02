@@ -89,6 +89,7 @@ vault status
 #VAULT_ADDR=https://localhost:8200 `egrep -m3 '^Unseal Key' /opt/vault/setup/vault.unseal.info | cut -f2- -d: | tr -d ' ' | while read key; do VAULT_ADDR=https://localhost:8200  vault operator unseal \$\{key\}; done`
 
 cat << EOF > /opt/vault/setup/azure_setup.sh
+#!/bin/sh -x
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
 vault audit enable file file_path=/opt/vault/vault_audit.log
@@ -138,6 +139,7 @@ path "secret/db-credentials" {
 EOF
 
 cat << EOF > /opt/vault/setup/dev-secrets.sh
+#!/bin/sh -x
 ROOT_TOKEN=`cat /opt/vault/setup/vault.unseal.info |grep Root|awk '{print $4}'`
 vault login $ROOT_TOKEN
 vault policy write dev /opt/vault/setup/dev.hcl
