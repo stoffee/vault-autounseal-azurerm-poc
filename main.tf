@@ -80,6 +80,10 @@ resource "azurerm_key_vault_key" "generated" {
 output "key_vault_name" {
   value = "${azurerm_key_vault.vault.name}"
 }
+output "public_ip_for_instance" {
+  value = "${azurerm_public_ip.tf_publicip.ip_address}"
+}
+
 
 # ---------------------
 # Create Vault VM
